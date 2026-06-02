@@ -1,0 +1,24 @@
+# Fly.io config — free-tier-friendly always-on worker (no public services).
+#
+# One-time setup (you, with your own Fly account):
+#   fly auth login
+#   fly launch --no-deploy --copy-config --name inline-claude-bot   # or `fly apps create`
+#   fly secrets set TELEGRAM_BOT_TOKEN=... ANTHROPIC_API_KEY=sk-ant-...
+#   fly deploy
+#   fly logs
+#
+# Secrets are set via `fly secrets`, NOT committed here.
+
+app = "inline-claude-bot"
+primary_region = "iad"
+
+[build]
+
+# Long-polling worker: a single always-on machine, no inbound HTTP service.
+[processes]
+  app = "python bot.py"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1

@@ -74,6 +74,38 @@ The bot runs via long polling — no public URL or webhook needed.
   in `.env`. `CLAUDE_EFFORT=low` keeps inline replies snappy; raise to
   `medium`/`high` for harder tasks.
 
+## Deploy
+
+The bot uses long polling, so it just needs one always-on process — no public
+URL or webhook. Pick one:
+
+**Docker on a VPS (most common default):**
+```bash
+cp .env.example .env   # fill in your tokens
+docker compose up -d --build
+docker compose logs -f
+```
+
+**Bare VPS with systemd (no Docker):** see the install steps at the top of
+`deploy/inline-claude-bot.service`.
+
+**Fly.io (free-tier friendly):**
+```bash
+fly launch --no-deploy --copy-config --name inline-claude-bot
+fly secrets set TELEGRAM_BOT_TOKEN=... ANTHROPIC_API_KEY=sk-ant-...
+fly deploy
+```
+
+**CI/CD:** `.github/workflows/ci.yml` lints + smoke-tests on every push and
+publishes a container image to GHCR (`ghcr.io/<owner>/<repo>`) using the
+built-in token. Pull it on your host with `docker run --env-file .env ghcr.io/...`.
+
+`make help` lists shortcuts for all of the above.
+
+> **Cost note:** hosting can be free, but Claude API calls are billed
+> (`claude-opus-4-8` ≈ $5/$25 per 1M tokens). Set `CLAUDE_MODEL=claude-haiku-4-5`
+> in `.env` for the cheapest option.
+
 ## Files
 
 | File | Purpose |

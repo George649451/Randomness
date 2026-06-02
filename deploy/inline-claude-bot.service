@@ -1,0 +1,35 @@
+# systemd unit for running the bot directly on a VPS (no Docker).
+#
+# Install:
+#   sudo useradd --system --create-home --home-dir /opt/inline-claude-bot bot
+#   sudo rsync -a --exclude .git ./ /opt/inline-claude-bot/
+#   sudo -u bot python3 -m venv /opt/inline-claude-bot/.venv
+#   sudo -u bot /opt/inline-claude-bot/.venv/bin/pip install -r /opt/inline-claude-bot/requirements.txt
+#   sudo cp /opt/inline-claude-bot/.env.example /opt/inline-claude-bot/.env   # then edit it
+#   sudo cp deploy/inline-claude-bot.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now inline-claude-bot
+#   journalctl -u inline-claude-bot -f          # view logs
+
+[Unit]
+Description=Inline Claude Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bot
+WorkingDirectory=/opt/inline-claude-bot
+EnvironmentFile=/opt/inline-claude-bot/.env
+ExecStart=/opt/inline-claude-bot/.venv/bin/python bot.py
+Restart=always
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/inline-claude-bot
+
+[Install]
+WantedBy=multi-user.target

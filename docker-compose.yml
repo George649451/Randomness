@@ -1,0 +1,15 @@
+# Run on any VPS/box with Docker:  docker compose up -d --build
+# Requires a .env file next to this one (copy from .env.example).
+services:
+  bot:
+    build: .
+    image: inline-claude-bot:latest
+    container_name: inline-claude-bot
+    restart: unless-stopped
+    env_file: .env
+    # Polling bot — no ports to expose.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
