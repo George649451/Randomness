@@ -1,0 +1,5 @@
+# Use a recent anthropic SDK — Opus 4.8, output_config (effort), and adaptive
+# thinking require an up-to-date version. `pip install -U anthropic` if in doubt.
+anthropic>=0.69.0
+python-telegram-bot>=21.0,<22.0
+python-dotenv>=1.0.0
