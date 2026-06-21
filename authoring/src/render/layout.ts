@@ -93,25 +93,22 @@ const EDGE_COLOR: Record<EdgeRole, string> = {
   else: "#64748b",
 };
 
-export function toFlow(
+export type SizeOf = (n: Node<FlowNodeData>) => { width: number; height: number };
+
+/** Estimate sizes from content — the fallback before React Flow has measured. */
+export const estimateSizeOf: SizeOf = (n) => ({
+  width: NODE_W,
+  height: estimateHeight(n.data.node, Boolean(n.data.descriptor)),
+});
+
+/** Build the nodes + edges (no final positions yet). */
+export function buildElements(
   graph: WorkflowGraph,
   registry: ToolRegistry,
 ): { nodes: Node<FlowNodeData>[]; edges: Edge[] } {
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 });
-
-  const heights = new Map<string, number>();
-  for (const n of graph.nodes) {
-    const h = estimateHeight(n, Boolean(n.do && registry[n.do]));
-    heights.set(n.id, h);
-    g.setNode(n.id, { width: NODE_W, height: h });
-  }
-
   const edges: Edge[] = [];
   for (const n of graph.nodes) {
     edgesFor(n).forEach((e, i) => {
-      // Only lay out edges whose target exists; the validator surfaces dangling ones.
-      if (g.hasNode(e.target)) g.setEdge(n.id, e.target);
       edges.push({
         id: `${n.id}->${e.target}#${i}`,
         source: n.id,
@@ -125,24 +122,53 @@ export function toFlow(
     });
   }
 
-  Dagre.layout(g);
-
-  const nodes: Node<FlowNodeData>[] = graph.nodes.map((n) => {
-    const pos = g.node(n.id);
-    return {
-      id: n.id,
-      type: nodeKind(n),
-      position: {
-        x: (pos?.x ?? 0) - NODE_W / 2,
-        y: (pos?.y ?? 0) - (heights.get(n.id) ?? 96) / 2,
-      },
-      data: {
-        node: n,
-        descriptor: n.do ? registry[n.do] : undefined,
-        isStart: n.id === graph.start,
-      },
-    };
-  });
+  const nodes: Node<FlowNodeData>[] = graph.nodes.map((n) => ({
+    id: n.id,
+    type: nodeKind(n),
+    position: { x: 0, y: 0 },
+    data: {
+      node: n,
+      descriptor: n.do ? registry[n.do] : undefined,
+      isStart: n.id === graph.start,
+    },
+  }));
 
   return { nodes, edges };
+}
+
+/** Pure dagre pass: position nodes top-down using the given size function. */
+export function dagreLayout(
+  nodes: Node<FlowNodeData>[],
+  edges: Edge[],
+  sizeOf: SizeOf,
+): Node<FlowNodeData>[] {
+  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 });
+
+  const size = new Map<string, { width: number; height: number }>();
+  for (const n of nodes) {
+    const s = sizeOf(n);
+    size.set(n.id, s);
+    g.setNode(n.id, { ...s });
+  }
+  for (const e of edges) {
+    if (g.hasNode(e.source) && g.hasNode(e.target)) g.setEdge(e.source, e.target);
+  }
+
+  Dagre.layout(g);
+
+  return nodes.map((n) => {
+    const pos = g.node(n.id);
+    const s = size.get(n.id)!;
+    return { ...n, position: { x: (pos?.x ?? 0) - s.width / 2, y: (pos?.y ?? 0) - s.height / 2 } };
+  });
+}
+
+/** Convenience: build + lay out with estimated sizes (the initial, pre-measure pass). */
+export function toFlow(
+  graph: WorkflowGraph,
+  registry: ToolRegistry,
+): { nodes: Node<FlowNodeData>[]; edges: Edge[] } {
+  const { nodes, edges } = buildElements(graph, registry);
+  return { nodes: dagreLayout(nodes, edges, estimateSizeOf), edges };
 }
