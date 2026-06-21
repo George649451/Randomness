@@ -1,9 +1,9 @@
 # Flow Authoring Tool — chat + chart
 
 The no-code surface where Ops composes workflows for the CS Assistant
-(spec §7). This is the **foundation build**: schema, validator, diff engine,
-and a faithful React Flow viewer. The chat→graph LLM compile layer is stubbed
-and is the next piece to build.
+(spec §7): schema, validator, diff engine, a faithful React Flow viewer, **and
+the brief→graph LLM compile layer** that turns plain-language briefs into
+validated diffs.
 
 ## The one idea
 
@@ -12,9 +12,9 @@ it, never hand-drawn.** Reading the chart *is* reading what will run (spec §3, 
 This deletes the expensive half of a node editor (drag/snap/connect/undo).
 
 ```
-chat (edits, plain language)  →  targeted DIFF  →  workflow JSON  →  chart (renders)
-                                                        ↑
-                                              also editable directly here
+chat (plain language) → model decides → DIFF → applyDiff → validate → workflow JSON → chart
+                              │                                              ↑
+                          ask | commit                            also editable directly here
 ```
 
 ## Layout
@@ -26,13 +26,37 @@ src/
     validate.ts    footgun catcher → structured problems (not throws)
   diff/          # targeted graph diffs (§7) — pure, unit-tested
     diff.ts        applyDiff(graph, ops) + "here's what I changed"
+  compile/       # brief → graph compile layer — the bespoke LLM step
+    prompt.ts      pure: registry + schema rules → system prompt + tool schemas
+    parse.ts       pure: model tool-call → typed ModelDecision (ask | commit)
+    engine.ts      runTurn(): decision → applyDiff → validate (control flow in code)
+    client-anthropic.ts  the only module that imports the SDK / hits the API
+    client-fake.ts       scripted client for tests + offline dev
   render/        # JSON → React Flow graph
     layout.ts      dagre auto-layout (loops / re-convergence, §7)
     nodes.tsx      each box shows actual content + kind/tier badges (§5.1)
   descriptors/   # mock tool registry (later GENERATED from adapter code, §5)
   samples/       # the canonical refund-status workflow
-  ui/            # two-pane shell: <ChatStub/> | <Chart/>
+  ui/            # two-pane shell: <Chat/> | <Chart/>
 ```
+
+## The compile layer (the model is a leaf, not the wheel)
+
+The model never edits the graph. Each turn it returns one of two **decisions** via
+tool use — `ask_question` (a schema-missing clarification) or `commit_changes`
+(targeted `DiffOp[]` + a one-line summary). Plain code (`engine.runTurn`) then
+applies the diff with the pure `applyDiff` and re-validates — so control flow stays
+deterministic and auditable (Directive 1). Key design points:
+
+- **Targeted diffs, never whole-graph re-emit** (§7) — the model emits ops, not a
+  new JSON blob, so a turn about node 3 can't reword node 7.
+- **Commit-then-validate** — even an invalid commit is surfaced with its validation
+  problems rather than silently dropped: the chart + problem list are the review
+  surface.
+- **Swappable client** (`CompileClient`) — `AnthropicCompileClient` in production,
+  `FakeCompileClient` in tests, so the engine and UI are exercised without a network.
+- **Model:** `claude-opus-4-8`, called client-side (`dangerouslyAllowBrowser`) — the
+  spec's accepted tradeoff for an internal tool with trusted users (§4.2).
 
 ## Why these choices (traceable to the spec)
 
@@ -56,19 +80,20 @@ src/
 
 ```bash
 npm install
+echo "VITE_ANTHROPIC_API_KEY=sk-ant-..." > .env.local   # enables the assistant
 npm run dev        # http://localhost:5173
-npm test           # 19 tests over the diff engine + validator
+npm test           # 33 tests: diff engine, validator, compile parse + engine
 npm run typecheck
 npm run build
 ```
 
+Without a key the assistant pane is disabled but the chart + JSON editor still work.
+
 ## What's deliberately NOT here yet
 
-- **The brief→graph compile layer** (the bespoke LLM step that turns plain language
-  into diffs and asks only the schema-missing clarifying questions). The `ChatStub`
-  marks where it attaches; until then, drive the graph by editing JSON or pasting a
-  `DiffOp[]`.
 - **Click-to-edit node contents** — viewer mode supports it; the editing affordance
   is a later increment.
+- **Auto-repair loop** — a failed-validation commit currently just shows its problems;
+  feeding them back to the model for a fix is a natural follow-up.
 - **Sharing the schema with the runtime interpreter** (§4.3) — `src/schema` is written
   to be lifted into a shared package when the extension is built.

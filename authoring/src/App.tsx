@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import type { WorkflowGraph } from "./schema/types";
 import { validateGraph, type Problem } from "./schema/validate";
-import { applyDiff, type DiffOp } from "./diff/diff";
 import { mockRegistry } from "./descriptors/registry";
 import { refundStatusWorkflow, sampleInitialKeys } from "./samples/refundStatus";
 import { Chart } from "./ui/Chart";
-import { ChatStub } from "./ui/ChatStub";
+import { Chat } from "./ui/Chat";
 
 export default function App() {
   const [graph, setGraph] = useState<WorkflowGraph>(refundStatusWorkflow);
@@ -32,9 +31,8 @@ export default function App() {
     }
   };
 
-  // Applying a diff: the chart-faithful path the LLM layer will use.
-  const onApplyDiff = (ops: DiffOp[]) => {
-    const next = applyDiff(graph, ops);
+  // The compile loop commits a validated graph; mirror it into the JSON editor.
+  const onCommit = (next: WorkflowGraph) => {
     setGraph(next);
     setJsonText(JSON.stringify(next, null, 2));
     setParseError(null);
@@ -49,7 +47,12 @@ export default function App() {
 
       <div className="app-body">
         <aside className="pane pane-left">
-          <ChatStub onApplyDiff={onApplyDiff} />
+          <Chat
+            graph={graph}
+            registry={mockRegistry}
+            initialKeys={sampleInitialKeys}
+            onCommit={onCommit}
+          />
 
           <div className="json-section">
             <label className="json-label">Workflow JSON (source of truth)</label>
