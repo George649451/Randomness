@@ -17,7 +17,41 @@ export interface FlowNodeData extends Record<string, unknown> {
 }
 
 const NODE_W = 240;
-const NODE_H = 96;
+
+// The boxes are variable-height (a branch lists every condition; a to-do shows
+// args + badges; a reply's prose wraps). dagre needs a real height per node or it
+// packs ranks too tightly and the boxes overlap. We estimate from content — the
+// width is fixed (CSS .wf-node) so only height varies. Generous, to avoid collisions.
+const LINE = 16; // px per text line
+const CHARS_PER_LINE = 30; // ~chars that fit at 240px before wrapping
+
+function wrappedLines(text: string): number {
+  return Math.max(1, Math.ceil(text.length / CHARS_PER_LINE));
+}
+
+function estimateHeight(node: WorkflowNode, hasDescriptor: boolean): number {
+  let body = 0;
+  const kind = nodeKind(node);
+  if (kind === "todo") {
+    body += LINE; // the `do` tool name
+    body += Object.keys(node.args ?? {}).length * LINE; // one line per arg
+    if (node.as) body += LINE;
+    if (hasDescriptor) body += 26; // kind/tier badge row
+  } else if (kind === "condition") {
+    for (const b of node.branch ?? []) {
+      const text = "else" in b ? `else ${b.else}` : (b.when ?? `LLM ${b.when_llm}`);
+      body += wrappedLines(text) * LINE;
+    }
+  } else if (kind === "reply") {
+    body += wrappedLines(node.say ?? "") * LINE;
+    if (node.next === null) body += LINE;
+  } else {
+    body += LINE;
+  }
+  // padding + header + a little buffer for estimation error
+  return 28 + 22 + body + 12;
+}
+
 
 /** A labelled outgoing edge with a semantic role used for colouring. */
 type EdgeRole = "ok" | "error" | "timeout" | "empty" | "branch" | "llm" | "else";
@@ -64,9 +98,14 @@ export function toFlow(
   registry: ToolRegistry,
 ): { nodes: Node<FlowNodeData>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "TB", nodesep: 40, ranksep: 60 });
+  g.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 });
 
-  for (const n of graph.nodes) g.setNode(n.id, { width: NODE_W, height: NODE_H });
+  const heights = new Map<string, number>();
+  for (const n of graph.nodes) {
+    const h = estimateHeight(n, Boolean(n.do && registry[n.do]));
+    heights.set(n.id, h);
+    g.setNode(n.id, { width: NODE_W, height: h });
+  }
 
   const edges: Edge[] = [];
   for (const n of graph.nodes) {
@@ -93,7 +132,10 @@ export function toFlow(
     return {
       id: n.id,
       type: nodeKind(n),
-      position: { x: (pos?.x ?? 0) - NODE_W / 2, y: (pos?.y ?? 0) - NODE_H / 2 },
+      position: {
+        x: (pos?.x ?? 0) - NODE_W / 2,
+        y: (pos?.y ?? 0) - (heights.get(n.id) ?? 96) / 2,
+      },
       data: {
         node: n,
         descriptor: n.do ? registry[n.do] : undefined,
