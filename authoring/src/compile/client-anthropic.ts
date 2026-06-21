@@ -27,7 +27,17 @@ export class AnthropicCompileClient implements CompileClient {
   private system: string;
 
   constructor(cfg: AnthropicClientConfig) {
-    this.client = new Anthropic({ apiKey: cfg.apiKey, dangerouslyAllowBrowser: true });
+    // In the browser, route through the dev-server proxy (/anthropic), which injects
+    // the real key server-side — so the key never leaves the server and there's no
+    // CORS/direct-browser dependency. The apiKey here is a placeholder the proxy
+    // overrides; the SDK just needs a non-empty value.
+    const baseURL =
+      typeof window !== "undefined" ? `${window.location.origin}/anthropic` : undefined;
+    this.client = new Anthropic({
+      apiKey: cfg.apiKey || "proxied-by-dev-server",
+      baseURL,
+      dangerouslyAllowBrowser: true,
+    });
     this.system = buildSystemPrompt(cfg.registry, cfg.initialKeys ?? []);
   }
 
