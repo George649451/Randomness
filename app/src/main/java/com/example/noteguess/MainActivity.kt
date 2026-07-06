@@ -4,15 +4,17 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Button
-import android.widget.GridLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
-    private val noteNames = listOf("C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B")
-    private val baseMidi = 60 // C4 (middle C); buttons cover one octave up to B4.
+    private val solfegeNames =
+        listOf("Do", "Do♯", "Re", "Re♯", "Mi", "Fa", "Fa♯", "Sol", "Sol♯", "La", "La♯", "Si")
+    private val letterNames =
+        listOf("C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B")
+    private val baseMidi = 60 // C4 (middle C); the keyboard covers one octave up to B4.
 
     private val player = NotePlayer()
     private val handler = Handler(Looper.getMainLooper())
@@ -22,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultText: TextView
     private lateinit var playButton: Button
     private lateinit var replayButton: Button
-    private val noteButtons = mutableListOf<Button>()
+    private lateinit var keyboard: PianoKeyboardView
 
     private var targetNote = -1
     private var awaitingGuess = false
@@ -38,8 +40,9 @@ class MainActivity : AppCompatActivity() {
         resultText = findViewById(R.id.result_text)
         playButton = findViewById(R.id.play_button)
         replayButton = findViewById(R.id.replay_button)
+        keyboard = findViewById(R.id.keyboard)
 
-        buildNoteButtons(findViewById(R.id.note_grid))
+        keyboard.onKeyPressed = { onGuess(it) }
 
         playButton.setOnClickListener { startRound() }
         replayButton.setOnClickListener {
@@ -51,24 +54,11 @@ class MainActivity : AppCompatActivity() {
         updateScore()
     }
 
-    private fun buildNoteButtons(grid: GridLayout) {
-        noteNames.forEachIndexed { index, name ->
-            val button = Button(this).apply {
-                text = name
-                textSize = 18f
-                setOnClickListener { onGuess(index) }
-            }
-            val params = GridLayout.LayoutParams(
-                GridLayout.spec(GridLayout.UNDEFINED, 1f),
-                GridLayout.spec(GridLayout.UNDEFINED, 1f)
-            ).apply { width = 0 }
-            grid.addView(button, params)
-            noteButtons.add(button)
-        }
-    }
+    /** Combined display name like "Do (C)" or "Fa♯ (F♯)". */
+    private fun noteName(note: Int) = "${solfegeNames[note]} (${letterNames[note]})"
 
     private fun startRound() {
-        targetNote = Random.nextInt(noteNames.size)
+        targetNote = Random.nextInt(solfegeNames.size)
         awaitingGuess = true
         resultText.text = ""
         statusText.text = getString(R.string.status_guess)
@@ -88,12 +78,12 @@ class MainActivity : AppCompatActivity() {
 
         // Play the note the user picked, then reveal the answer once it has sounded.
         player.play(baseMidi + guess)
-        statusText.text = getString(R.string.status_you_picked, noteNames[guess])
+        statusText.text = getString(R.string.status_you_picked, noteName(guess))
         handler.postDelayed({
             resultText.text = if (correct) {
-                getString(R.string.result_correct, noteNames[targetNote])
+                getString(R.string.result_correct, noteName(targetNote))
             } else {
-                getString(R.string.result_wrong, noteNames[targetNote], noteNames[guess])
+                getString(R.string.result_wrong, noteName(targetNote), noteName(guess))
             }
             statusText.text = getString(R.string.status_play_again)
             updateScore()
@@ -101,7 +91,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setGuessingEnabled(enabled: Boolean) {
-        noteButtons.forEach { it.isEnabled = enabled }
+        keyboard.isEnabled = enabled
     }
 
     private fun updateScore() {

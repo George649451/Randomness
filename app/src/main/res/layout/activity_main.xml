@@ -31,12 +31,12 @@
         android:minHeight="32dp"
         android:textSize="18sp" />
 
-    <GridLayout
-        android:id="@+id/note_grid"
+    <com.example.noteguess.PianoKeyboardView
+        android:id="@+id/keyboard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:columnCount="3" />
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/replay_button"
