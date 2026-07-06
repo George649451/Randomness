@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Note Guess</string>
+    <string name="play_note">▶ Play a random note</string>
+    <string name="replay_note">🔁 Hear it again</string>
+    <string name="status_start">Tap “Play a random note” to start!</string>
+    <string name="status_guess">Which note was that?</string>
+    <string name="status_you_picked">Playing %1$s…</string>
+    <string name="status_play_again">Play another note to keep going!</string>
+    <string name="result_correct">✅ Correct! It was %1$s.</string>
+    <string name="result_wrong">❌ It was %1$s — you picked %2$s.</string>
+    <string name="score_format">Score: %1$d / %2$d</string>
+</resources>
