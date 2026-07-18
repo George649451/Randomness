@@ -1,5 +1,6 @@
 package com.example.noteguess
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,12 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
-
-    private val solfegeNames =
-        listOf("Do", "Do♯", "Re", "Re♯", "Mi", "Fa", "Fa♯", "Sol", "Sol♯", "La", "La♯", "Si")
-    private val letterNames =
-        listOf("C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B")
-    private val baseMidi = 60 // C4 (middle C); the keyboard covers one octave up to B4.
 
     private val player = NotePlayer()
     private val handler = Handler(Looper.getMainLooper())
@@ -46,7 +41,13 @@ class MainActivity : AppCompatActivity() {
 
         playButton.setOnClickListener { startRound() }
         replayButton.setOnClickListener {
-            if (targetNote >= 0) player.play(baseMidi + targetNote)
+            if (targetNote >= 0) player.play(Notes.BASE_MIDI + targetNote)
+        }
+        findViewById<Button>(R.id.setup_voice_button).setOnClickListener {
+            startActivity(Intent(this, SetupVoiceActivity::class.java))
+        }
+        findViewById<Button>(R.id.driving_button).setOnClickListener {
+            startActivity(Intent(this, DrivingActivity::class.java))
         }
 
         setGuessingEnabled(false)
@@ -54,17 +55,16 @@ class MainActivity : AppCompatActivity() {
         updateScore()
     }
 
-    /** Combined display name like "Do (C)" or "Fa♯ (F♯)". */
-    private fun noteName(note: Int) = "${solfegeNames[note]} (${letterNames[note]})"
+    private fun noteName(note: Int) = Notes.display(note)
 
     private fun startRound() {
-        targetNote = Random.nextInt(solfegeNames.size)
+        targetNote = Random.nextInt(Notes.COUNT)
         awaitingGuess = true
         resultText.text = ""
         statusText.text = getString(R.string.status_guess)
         setGuessingEnabled(true)
         replayButton.isEnabled = true
-        player.play(baseMidi + targetNote)
+        player.play(Notes.BASE_MIDI + targetNote)
     }
 
     private fun onGuess(guess: Int) {
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         if (correct) correctCount++
 
         // Play the note the user picked, then reveal the answer once it has sounded.
-        player.play(baseMidi + guess)
+        player.play(Notes.BASE_MIDI + guess)
         statusText.text = getString(R.string.status_you_picked, noteName(guess))
         handler.postDelayed({
             resultText.text = if (correct) {

@@ -10,4 +10,34 @@
     <string name="result_correct">✅ Correct! It was %1$s.</string>
     <string name="result_wrong">❌ It was %1$s — you picked %2$s.</string>
     <string name="score_format">Score: %1$d / %2$d</string>
+
+    <string name="setup_voice_button">🎙 Record voice answers</string>
+    <string name="driving_button">🚗 Hands-free driving mode</string>
+
+    <string name="setup_title">Record your answers</string>
+    <string name="setup_instructions">Record yourself saying each answer once — for example “that\'s do” or “that\'s fa sharp”, in any words or language you like. Driving mode will match what you say against these recordings, so record them somewhere quiet (or in your car) and keep each answer short and distinct.</string>
+    <string name="setup_progress">%1$d of %2$d recorded</string>
+    <string name="setup_hint">Tap 🎙 next to a note, then say your answer for it.</string>
+    <string name="setup_done">✅ All 12 recorded — driving mode is ready!</string>
+    <string name="setup_listening">🎤 Listening — say your answer for %1$s now…</string>
+    <string name="setup_nothing_heard">Didn\'t catch that — try again.</string>
+    <string name="setup_record">🎙</string>
+    <string name="setup_play">▶</string>
+
+    <string name="driving_title">Driving mode</string>
+    <string name="driving_ready">Tap Start, mount your phone, and keep your eyes on the road. Everything is by voice.</string>
+    <string name="driving_needs_setup">Record your 12 voice answers first.</string>
+    <string name="driving_go_to_setup">Go to voice setup</string>
+    <string name="driving_start">▶ Start</string>
+    <string name="driving_stop">⏹ Stop</string>
+    <string name="driving_get_ready">Get ready!</string>
+    <string name="driving_listen_note">🎵 …</string>
+    <string name="driving_say_answer">🎤 Say the note…</string>
+    <string name="driving_say_again">Say again?</string>
+    <string name="driving_not_heard">I didn\'t hear you. Say it again.</string>
+    <string name="driving_reveal">That was %1$s.</string>
+    <string name="driving_correct">Yes!</string>
+    <string name="driving_wrong">No, that was %1$s.</string>
+
+    <string name="mic_permission_needed">Microphone permission is needed for voice answers.</string>
 </resources>

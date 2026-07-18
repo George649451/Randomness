@@ -13,6 +13,23 @@ A tiny Android ear-training game.
    (and what the answer was if you weren't), keeping a running score.
 4. Use **🔁 Hear it again** to replay the mystery note before guessing.
 
+## Hands-free driving mode
+
+For ear training without touching or looking at the phone:
+
+1. **🎙 Record voice answers** (one-time setup): record yourself saying each
+   of the 12 answers in your own words ("that's do", "fa sharp", any
+   language). Recordings stay on the device.
+2. **🚗 Hands-free driving mode**: tap Start once. The app plays a note,
+   listens for your spoken answer, and replies "Yes!" or "No, that was ray"
+   — then plays the next note automatically.
+
+Answers are matched against *your own* recordings (MFCC fingerprints compared
+with dynamic time warping — `Dsp.kt`/`VoiceMatcher.kt`), entirely offline: no
+speech-recognition service is involved, so accents and made-up words work
+fine. If an answer is too close to call, the app asks "Say again?" instead of
+guessing. The game pauses automatically if the app goes to the background.
+
 All tones are synthesized on the fly with `AudioTrack` (a sine wave with a
 couple of soft overtones), so there are no audio assets.
 
