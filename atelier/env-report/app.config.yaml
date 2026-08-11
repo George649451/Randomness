@@ -1,0 +1,8 @@
+# Author-owned. appName + appClass + subdomain are your knobs.
+appName: env-report
+owners:
+  - george.g@cxm.com
+appClass: small # small | medium | large (large needs platform-admin sign-off)
+# Requested label under atelier.cxm.com, e.g. "expense-helper" -> expense-helper.atelier.cxm.com
+# REQUEST ONLY: the app is NOT reachable until an approver signs off.
+subdomain: "env-report"
