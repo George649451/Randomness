@@ -19,6 +19,8 @@ enum class AcProtocol(
     val shortLabel: String,
     val description: String,
     val timing: IrTiming,
+    /** Modes this code set can encode; the MODE button cycles only these. */
+    val modes: Set<AcMode> = AcMode.entries.toSet(),
 ) {
     /** Mitsubishi Electric, 18-byte frame. The MSZ/MSC split units. */
     ELECTRIC_144("144-bit", "Mitsubishi Electric · 18-byte frame (MSZ, MSC)", TIMING_144) {
@@ -88,7 +90,13 @@ enum class AcProtocol(
     },
 
     /** Mitsubishi Electric, 14-byte frame; shares its checksum lineage with TCL. */
-    ELECTRIC_112("112-bit", "Mitsubishi Electric · 14-byte frame (MSH, SEZ)", TIMING_112) {
+    ELECTRIC_112(
+        "112-bit",
+        "Mitsubishi Electric · 14-byte frame (MSH, SEZ)",
+        TIMING_112,
+        // This code set has no fan-only mode at all.
+        modes = setOf(AcMode.COOLING, AcMode.HEATING, AcMode.DRY, AcMode.AUTO),
+    ) {
         override fun frame(state: AcState): IntArray {
             val frame = IntArray(14)
             PROLOGUE_112.copyInto(frame)
@@ -97,13 +105,16 @@ enum class AcProtocol(
                 AcMode.COOLING -> 0b011
                 AcMode.HEATING -> 0b001
                 AcMode.DRY -> 0b010
-                // No fan-only mode in this code set; auto is the closest thing.
+                // No fan-only mode here, which is why [modes] excludes it.
                 AcMode.FAN, AcMode.AUTO -> 0b111
             }
             frame[7] = 31 - state.temperatureC.coerceIn(16, 31) // counts downwards
+            // No auto value is known for this code set, so auto sends medium —
+            // what the reference implementation falls back to. "Silent" and the
+            // lowest step are one and the same frame here.
             val fan = when (state.fan) {
-                FanSpeed.AUTO, FanSpeed.LEVEL_4 -> 0b000
-                FanSpeed.LEVEL_3 -> 0b101
+                FanSpeed.LEVEL_4 -> 0b000
+                FanSpeed.AUTO, FanSpeed.LEVEL_3 -> 0b101
                 FanSpeed.LEVEL_2 -> 0b011
                 FanSpeed.LEVEL_1, FanSpeed.SILENT -> 0b010
             }
@@ -122,7 +133,8 @@ enum class AcProtocol(
     fun pattern(state: AcState): IntArray = IrFrames.toPattern(frame(state), timing)
 
     companion object {
-        val DEFAULT = ELECTRIC_144
+        /** The one confirmed working against a real indoor unit. */
+        val DEFAULT = ELECTRIC_112
 
         fun byName(name: String?): AcProtocol =
             entries.firstOrNull { it.name == name } ?: DEFAULT

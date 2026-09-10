@@ -1,14 +1,18 @@
 package com.example.acremote
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -49,6 +53,7 @@ class RemoteActivity : AppCompatActivity() {
         transmitter = IrTransmitter(this)
         state = loadState()
         protocol = AcProtocol.byName(prefs.getString(KEY_PROTOCOL, null))
+        state = state.coerceModeTo(protocol.modes)
 
         tempCell = findViewById(R.id.temp_cell)
         modeCell = findViewById(R.id.mode_cell)
@@ -64,7 +69,9 @@ class RemoteActivity : AppCompatActivity() {
         statusText = findViewById(R.id.status_text)
 
         powerButton.setOnClickListener { press(it) { state.copy(power = !state.power) } }
-        findViewById<ImageButton>(R.id.mode_button).setOnClickListener { press(it) { state.nextMode() } }
+        findViewById<ImageButton>(R.id.mode_button).setOnClickListener {
+            press(it) { state.nextMode(protocol.modes) }
+        }
         findViewById<ImageButton>(R.id.fan_button).setOnClickListener { press(it) { state.nextFan() } }
         swingButton.setOnClickListener { press(it) { state.copy(swing = !state.swing) } }
         tempUpButton.setOnClickListener {
@@ -96,11 +103,14 @@ class RemoteActivity : AppCompatActivity() {
     }
 
     private fun transmit() {
-        statusText.text = when (transmitter.send(state, protocol)) {
-            SendResult.SENT -> getString(R.string.status_sent, summary(), protocol.shortLabel)
-            SendResult.NO_EMITTER -> getString(R.string.status_no_emitter)
-            SendResult.NO_PERMISSION -> getString(R.string.status_no_permission)
-            SendResult.FAILED -> getString(R.string.status_failed)
+        statusText.text = getString(R.string.status_sending)
+        transmitter.send(state, protocol) { result ->
+            statusText.text = when (result) {
+                SendResult.SENT -> getString(R.string.status_sent, summary(), protocol.shortLabel)
+                SendResult.NO_EMITTER -> getString(R.string.status_no_emitter)
+                SendResult.NO_PERMISSION -> getString(R.string.status_no_permission)
+                SendResult.FAILED -> getString(R.string.status_failed)
+            }
         }
     }
 
@@ -162,6 +172,7 @@ class RemoteActivity : AppCompatActivity() {
             .setMessage("${getString(R.string.help_body)}\n\n${diagnostics()}")
             .setPositiveButton(R.string.help_close, null)
             .setNeutralButton(R.string.help_code_set) { _, _ -> showCodeSetChooser() }
+            .setNegativeButton(R.string.help_self_test) { _, _ -> runSelfTest() }
             .show()
     }
 
@@ -181,6 +192,41 @@ class RemoteActivity : AppCompatActivity() {
     }
 
     /**
+     * Times a few transmissions to establish whether the emitter fires at all,
+     * since a HAL that drops a pattern does so without complaining.
+     */
+    private fun runSelfTest() {
+        statusText.text = getString(R.string.self_test_running)
+        transmitter.selfTest(state, protocol) { report ->
+            statusText.text = ""
+            showSelfTestReport(report)
+        }
+    }
+
+    private fun showSelfTestReport(report: String) {
+        val body = TextView(this).apply {
+            text = report
+            typeface = Typeface.MONOSPACE
+            textSize = 12f
+            setTextIsSelectable(true)
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.self_test_title)
+            .setView(ScrollView(this).apply { addView(body) })
+            .setPositiveButton(R.string.help_close, null)
+            .setNeutralButton(R.string.self_test_copy) { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(
+                    ClipData.newPlainText(getString(R.string.self_test_title), report),
+                )
+                statusText.text = getString(R.string.self_test_copied)
+            }
+            .show()
+    }
+
+    /**
      * Lets the user hunt for the encoding their unit speaks — it cannot be
      * derived from the model, so trying is the only way.
      */
@@ -190,7 +236,9 @@ class RemoteActivity : AppCompatActivity() {
             .setTitle(R.string.code_set_title)
             .setSingleChoiceItems(options, protocol.ordinal) { dialog, which ->
                 protocol = AcProtocol.entries[which]
+                state = state.coerceModeTo(protocol.modes)
                 saveState()
+                render()
                 dialog.dismiss()
                 transmit()
             }

@@ -55,14 +55,40 @@ entirely. Which one an indoor unit speaks cannot be derived from its model name,
 so the remote ships all three Electric encodings and lets you try them: **?** →
 **Code set…**, then press ON/OFF. The unit beeps when it understands a frame.
 
-| Code set | Frame | Checksum | Seen on |
-| --- | --- | --- | --- |
-| 144-bit (default) | 18 bytes, sent twice | low byte of bytes 0–16 | MSZ, MSC |
-| 136-bit | 17 bytes | bytes 11–16 are bytes 5–10 inverted | MSZ-FH, GE |
-| 112-bit | 14 bytes | low byte of bytes 0–12 | MSH, SEZ |
+| Code set | Frame | Checksum | Seen on | |
+| --- | --- | --- | --- | --- |
+| 112-bit | 14 bytes | low byte of bytes 0–12 | MSH, SEZ | **default, confirmed on a real unit** |
+| 144-bit | 18 bytes, sent twice | low byte of bytes 0–16 | MSZ, MSC | untested on hardware |
+| 136-bit | 17 bytes | bytes 11–16 are bytes 5–10 inverted | MSZ-FH, GE | untested on hardware |
+
+The default is the 112-bit set because that is the one that actually drove the
+air conditioner this was written for. The other two are built from the same
+reference data but have never been pointed at a matching unit.
+
+Code sets differ in what they can express, and the UI follows: the 112-bit
+frame has no fan-only mode, so MODE skips FAN while it is selected, and
+switching to it from FAN moves the display to AUTO. No auto *fan* value is
+known for it either, so WIND SPEED's AUTO sends medium, and SILENT and the
+lowest bar step are the same frame.
 
 Mitsubishi Heavy Industries' 88- and 152-bit protocols are *not* implemented; if
 none of the three above work, that family is the next thing to try.
+
+### The 112-bit frame
+
+| Byte | Meaning |
+| --- | --- |
+| 0–4 | fixed vendor prologue (`23 CB 26 01 00`) |
+| 5 | `0x20`, plus power in bit 2 |
+| 6 | mode (`011` cool, `001` heat, `010` dry, `111` auto) |
+| 7 | 31 °C − target temperature — this one counts *downwards* |
+| 8 | fan (bits 0–2: `010` min, `011` low, `101` medium, `000` max), vertical vane (bits 3–5, `111` auto) |
+| 9–11 | unused by this remote |
+| 12 | horizontal vane in bits 2–5 (`1100` auto) |
+| 13 | checksum — low byte of the sum of bytes 0–12 |
+
+Timings: 3450 µs/1696 µs header, 450 µs bit marks, 1250 µs/385 µs spaces for
+one/zero, one copy of the frame.
 
 ### The 144-bit frame
 
@@ -93,8 +119,20 @@ verification without a unit to point at. The reference frames it checks are:
 112-bit  23 CB 26 01 00 24 03 0B 10 00 00 00 30
 ```
 
-**?** also shows the emitter status and the exact frame hex for the current
-state, which is what to compare against a capture of your own handset.
+### Diagnostics
+
+**?** shows the emitter status and the exact frame hex for the current state —
+what to compare against a capture of your own handset — and offers a
+**Self-test**. The self-test answers "did the LED fire at all?", which is
+otherwise unknowable: `transmit()` is synchronous, so a call that returns far
+sooner than its pattern lasts means the vendor's HAL discarded it without
+raising anything. It reports the phone and Android version, the emitter's
+carrier ranges, and a timed result per pattern variation (as sent, a single
+frame, and without the trailing gap, since some HALs are fussy about length or
+about ending on a gap). **Copy** puts the report on the clipboard.
+
+Transmission runs on a worker thread: `transmit()` blocks for the length of the
+pattern, which is a third of a second for the 144-bit code set.
 
 ## Building
 

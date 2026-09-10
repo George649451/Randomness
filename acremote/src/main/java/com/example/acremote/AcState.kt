@@ -37,9 +37,28 @@ data class AcState(
 ) {
     fun withTemperature(value: Int) = copy(temperatureC = value.coerceIn(MIN_TEMP_C, MAX_TEMP_C))
 
-    fun nextMode() = copy(mode = AcMode.entries[(mode.ordinal + 1) % AcMode.entries.size])
+    /**
+     * Advances to the next mode the active code set can actually express —
+     * cycling to a mode it cannot encode would leave the display claiming
+     * something the A/C was never told.
+     */
+    fun nextMode(allowed: Set<AcMode>): AcState {
+        if (allowed.isEmpty()) return this
+        var next = mode
+        do {
+            next = AcMode.entries[(next.ordinal + 1) % AcMode.entries.size]
+        } while (next !in allowed)
+        return copy(mode = next)
+    }
 
     fun nextFan() = copy(fan = FanSpeed.entries[(fan.ordinal + 1) % FanSpeed.entries.size])
+
+    /** Pulls an unsupported mode onto one the given code set can send. */
+    fun coerceModeTo(allowed: Set<AcMode>): AcState = when {
+        mode in allowed -> this
+        AcMode.AUTO in allowed -> copy(mode = AcMode.AUTO)
+        else -> copy(mode = allowed.first())
+    }
 
     companion object {
         const val MIN_TEMP_C = 16

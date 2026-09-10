@@ -126,6 +126,48 @@ class AcProtocolTest {
     }
 
     @Test
+    fun `112-bit fan auto falls back to medium, and silent equals the lowest step`() {
+        fun byte8(fan: FanSpeed) = AcProtocol.ELECTRIC_112.frame(AcState(fan = fan))[8] and 0b111
+        assertEquals(0b101, byte8(FanSpeed.AUTO)) // no auto value exists here
+        assertEquals(0b101, byte8(FanSpeed.LEVEL_3))
+        assertEquals(0b000, byte8(FanSpeed.LEVEL_4))
+        assertEquals(0b010, byte8(FanSpeed.LEVEL_1))
+        assertEquals(0b010, byte8(FanSpeed.SILENT))
+    }
+
+    @Test
+    fun `112-bit has no fan-only mode, so the mode cycle skips it`() {
+        val protocol = AcProtocol.ELECTRIC_112
+        assertTrue(AcMode.FAN !in protocol.modes)
+
+        // Cycling from dry lands on auto, never on fan.
+        val cycled = AcState(mode = AcMode.DRY).nextMode(protocol.modes)
+        assertEquals(AcMode.AUTO, cycled.mode)
+
+        // Every mode reachable through the button is one this code set encodes.
+        var state = AcState(mode = AcMode.COOLING)
+        repeat(protocol.modes.size * 2) {
+            state = state.nextMode(protocol.modes)
+            assertTrue(state.mode.name, state.mode in protocol.modes)
+        }
+    }
+
+    @Test
+    fun `switching to a narrower code set pulls the mode onto a supported one`() {
+        val fanOnly = AcState(mode = AcMode.FAN)
+        assertEquals(AcMode.AUTO, fanOnly.coerceModeTo(AcProtocol.ELECTRIC_112.modes).mode)
+        // The wider code sets leave it alone.
+        assertEquals(AcMode.FAN, fanOnly.coerceModeTo(AcProtocol.ELECTRIC_144.modes).mode)
+    }
+
+    @Test
+    fun `144-bit and 136-bit cover every mode`() {
+        for (protocol in listOf(AcProtocol.ELECTRIC_144, AcProtocol.ELECTRIC_136)) {
+            assertEquals(protocol.name, AcMode.entries.toSet(), protocol.modes)
+        }
+    }
+
+    @Test
     fun `112-bit temperature counts downwards`() {
         assertEquals(31 - 21, AcProtocol.ELECTRIC_112.frame(AcState(temperatureC = 21))[7])
     }
