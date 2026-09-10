@@ -25,12 +25,19 @@
     <string name="fan_silent">SILENT</string>
     <string name="state_off">OFF</string>
 
-    <string name="status_sent">Sent %1$s</string>
+    <string name="status_sent">Sent %1$s · %2$s</string>
     <string name="status_no_emitter">This phone has no IR blaster — showing the remote only.</string>
     <string name="status_failed">The IR emitter refused the frame. Try again.</string>
+    <string name="status_no_permission">Android refused the transmission (TRANSMIT_IR permission missing).</string>
     <string name="status_no_carrier">IR blaster found, but it does not list 38 kHz support.</string>
 
     <string name="help_title">How this remote works</string>
-    <string name="help_body">Each button re-sends the complete A/C state over infrared, exactly as the original Mitsubishi handset does, so the on-screen display always matches what was transmitted.\n\n• ON/OFF — powers the unit on or off\n• MODE — cools, heats, dries, fan only, auto\n• TEMP — 16 °C to 31 °C (not used in DRY or FAN)\n• WIND SPEED — auto, four steps, silent\n• SWING — sweeps the vane up and down\n\nTransmission needs a phone with an IR blaster. Without one the display and buttons still work, so the layout can be checked on any device.</string>
+    <string name="help_body">Each button re-sends the complete A/C state over infrared, exactly as the original Mitsubishi handset does, so the on-screen display always matches what was transmitted.\n\n• ON/OFF — powers the unit on or off\n• MODE — cools, heats, dries, fan only, auto\n• TEMP — 16 °C to 31 °C (not used in DRY or FAN)\n• WIND SPEED — auto, four steps, silent\n• SWING — sweeps the vane up and down\n\nTransmission needs a phone with an IR blaster. Without one the display and buttons still work, so the layout can be checked on any device.\n\n“Mitsubishi” covers several incompatible IR encodings, and a unit ignores frames from the wrong one. If the A/C does not react, switch code set below and press ON/OFF again — the unit beeps when it understands a frame.</string>
     <string name="help_close">Got it</string>
+    <string name="help_code_set">Code set…</string>
+    <string name="code_set_title">Code set</string>
+    <string name="diagnostics">Code set: %1$s\nIR emitter: %2$s\nFrame: %3$s</string>
+    <string name="emitter_ready">present, 38 kHz supported</string>
+    <string name="emitter_unknown">present, carrier list unavailable</string>
+    <string name="emitter_missing">none on this phone</string>
 </resources>

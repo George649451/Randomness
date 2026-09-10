@@ -39,6 +39,7 @@ class RemoteActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
 
     private var state = AcState()
+    private var protocol = AcProtocol.DEFAULT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +48,7 @@ class RemoteActivity : AppCompatActivity() {
         prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         transmitter = IrTransmitter(this)
         state = loadState()
+        protocol = AcProtocol.byName(prefs.getString(KEY_PROTOCOL, null))
 
         tempCell = findViewById(R.id.temp_cell)
         modeCell = findViewById(R.id.mode_cell)
@@ -94,9 +96,10 @@ class RemoteActivity : AppCompatActivity() {
     }
 
     private fun transmit() {
-        statusText.text = when (transmitter.send(state)) {
-            SendResult.SENT -> getString(R.string.status_sent, summary())
+        statusText.text = when (transmitter.send(state, protocol)) {
+            SendResult.SENT -> getString(R.string.status_sent, summary(), protocol.shortLabel)
             SendResult.NO_EMITTER -> getString(R.string.status_no_emitter)
+            SendResult.NO_PERMISSION -> getString(R.string.status_no_permission)
             SendResult.FAILED -> getString(R.string.status_failed)
         }
     }
@@ -156,8 +159,41 @@ class RemoteActivity : AppCompatActivity() {
     private fun showHelp() {
         AlertDialog.Builder(this)
             .setTitle(R.string.help_title)
-            .setMessage(R.string.help_body)
+            .setMessage("${getString(R.string.help_body)}\n\n${diagnostics()}")
             .setPositiveButton(R.string.help_close, null)
+            .setNeutralButton(R.string.help_code_set) { _, _ -> showCodeSetChooser() }
+            .show()
+    }
+
+    /** What the app is sending and whether the hardware can send it. */
+    private fun diagnostics(): String {
+        val emitter = when {
+            !transmitter.hasEmitter -> getString(R.string.emitter_missing)
+            transmitter.supportsCarrier -> getString(R.string.emitter_ready)
+            else -> getString(R.string.emitter_unknown)
+        }
+        return getString(
+            R.string.diagnostics,
+            protocol.description,
+            emitter,
+            IrFrames.hex(protocol.frame(state)),
+        )
+    }
+
+    /**
+     * Lets the user hunt for the encoding their unit speaks — it cannot be
+     * derived from the model, so trying is the only way.
+     */
+    private fun showCodeSetChooser() {
+        val options = AcProtocol.entries.map { it.description }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.code_set_title)
+            .setSingleChoiceItems(options, protocol.ordinal) { dialog, which ->
+                protocol = AcProtocol.entries[which]
+                saveState()
+                dialog.dismiss()
+                transmit()
+            }
             .show()
     }
 
@@ -204,6 +240,7 @@ class RemoteActivity : AppCompatActivity() {
             .putInt(KEY_TEMP, state.temperatureC)
             .putInt(KEY_FAN, state.fan.ordinal)
             .putBoolean(KEY_SWING, state.swing)
+            .putString(KEY_PROTOCOL, protocol.name)
             .apply()
     }
 
@@ -214,5 +251,6 @@ class RemoteActivity : AppCompatActivity() {
         const val KEY_TEMP = "temperature"
         const val KEY_FAN = "fan"
         const val KEY_SWING = "swing"
+        const val KEY_PROTOCOL = "protocol"
     }
 }
