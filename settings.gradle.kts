@@ -14,5 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NoteGuess"
+rootProject.name = "Randomness"
 include(":app")
+include(":acremote")

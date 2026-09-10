@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Body of the remote: white under the title bar fading into pale lavender. -->
+    <color name="body_top">#FFFFFFFF</color>
+    <color name="body_bottom">#FFE4DFEC</color>
+
+    <color name="title_text">#FF1B1B1F</color>
+    <color name="help_blue">#FF1552CE</color>
+
+    <!-- LCD -->
+    <color name="lcd_bezel_top">#FFD3D0DA</color>
+    <color name="lcd_bezel_bottom">#FFBFBCC8</color>
+    <color name="lcd_screen">#FF93938C</color>
+    <color name="lcd_brand_strip">#FF7C7C75</color>
+    <color name="lcd_grid">#FF5E5E57</color>
+    <color name="lcd_segment">#FF23231F</color>
+    <color name="lcd_segment_dim">#FF3C3C36</color>
+
+    <!-- Buttons -->
+    <color name="button_face_top">#FFEDEAF2</color>
+    <color name="button_face_bottom">#FFD9D5E2</color>
+    <color name="button_stroke">#FFC9C5D4</color>
+    <color name="button_icon">#FF3A3A42</color>
+    <color name="button_icon_active">#FF0E9A82</color>
+    <color name="button_label">#FF4A4A52</color>
+    <color name="status_text">#FF6C6C76</color>
+</resources>

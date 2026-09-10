@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Title bar: back, device name, help. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/body_top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="12dp">
+
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_touch_circle"
+            android:contentDescription="@string/back"
+            android:scaleType="center"
+            android:src="@drawable/ic_back"
+            android:tint="@color/title_text" />
+
+        <TextView
+            android:id="@+id/title_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="@string/device_title"
+            android:textColor="@color/title_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/help_button"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_help_circle"
+            android:clickable="true"
+            android:contentDescription="@string/help"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="?"
+            android:textColor="@color/body_top"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- LCD panel, bezel and all. -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_lcd_bezel"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_lcd_screen"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="28dp"
+                        android:background="@color/lcd_brand_strip"
+                        android:gravity="center"
+                        android:letterSpacing="0.04"
+                        android:text="@string/brand"
+                        android:textColor="@color/lcd_segment"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/lcd_grid" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="152dp"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <!-- Target temperature. -->
+                        <LinearLayout
+                            android:id="@+id/temp_cell"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.5"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/temp_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:text="21"
+                                android:textColor="@color/lcd_segment"
+                                android:textSize="76sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginBottom="26dp"
+                                android:text="@string/celsius"
+                                android:textColor="@color/lcd_segment"
+                                android:textSize="18sp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="@color/lcd_grid" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <!-- Mode. -->
+                            <LinearLayout
+                                android:id="@+id/mode_cell"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="6dp">
+
+                                <ImageView
+                                    android:id="@+id/mode_icon"
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_snowflake"
+                                    android:tint="@color/lcd_segment" />
+
+                                <TextView
+                                    android:id="@+id/mode_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:letterSpacing="0.04"
+                                    android:text="@string/mode_cooling"
+                                    android:textColor="@color/lcd_segment"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:background="@color/lcd_grid" />
+
+                            <!-- Wind speed. -->
+                            <LinearLayout
+                                android:id="@+id/fan_cell"
+                                android:layout_width="match_parent"
+                                android:layout_height="0dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:paddingStart="14dp"
+                                android:paddingTop="10dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="6dp">
+
+                                <com.example.acremote.FanBarsView
+                                    android:id="@+id/fan_bars"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:layout_marginTop="4dp"
+                                    android:letterSpacing="0.04"
+                                    android:text="@string/wind_speed"
+                                    android:textColor="@color/lcd_segment"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Button pad. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <ImageButton
+                            android:id="@+id/power_button"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:background="@drawable/bg_button_circle"
+                            android:contentDescription="@string/power"
+                            android:padding="24dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_power"
+                            android:tint="@color/button_icon_active" />
+
+                        <TextView
+                            style="@style/ButtonLabel"
+                            android:text="@string/power" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="28dp"
+                        android:orientation="vertical">
+
+                        <ImageButton
+                            android:id="@+id/mode_button"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:background="@drawable/bg_button_circle"
+                            android:contentDescription="@string/mode"
+                            android:padding="24dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_mode"
+                            android:tint="@color/button_icon" />
+
+                        <TextView
+                            style="@style/ButtonLabel"
+                            android:text="@string/mode" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- TEMP rocker. -->
+                <LinearLayout
+                    android:layout_width="104dp"
+                    android:layout_height="224dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:background="@drawable/shape_button_pill"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/temp_up_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_touch_rounded"
+                        android:contentDescription="@string/temp_up"
+                        android:padding="30dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_chevron_up"
+                        android:tint="@color/button_icon" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:letterSpacing="0.06"
+                        android:text="@string/temp"
+                        android:textColor="@color/button_label"
+                        android:textSize="13sp" />
+
+                    <ImageButton
+                        android:id="@+id/temp_down_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_touch_rounded"
+                        android:contentDescription="@string/temp_down"
+                        android:padding="30dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/button_icon" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <ImageButton
+                            android:id="@+id/fan_button"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:background="@drawable/bg_button_circle"
+                            android:contentDescription="@string/wind_speed"
+                            android:padding="24dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_wind"
+                            android:tint="@color/button_icon" />
+
+                        <TextView
+                            style="@style/ButtonLabel"
+                            android:text="@string/wind_speed" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="28dp"
+                        android:orientation="vertical">
+
+                        <ImageButton
+                            android:id="@+id/swing_button"
+                            android:layout_width="76dp"
+                            android:layout_height="76dp"
+                            android:background="@drawable/bg_button_circle"
+                            android:contentDescription="@string/swing"
+                            android:padding="24dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_swing"
+                            android:tint="@color/button_icon" />
+
+                        <TextView
+                            style="@style/ButtonLabel"
+                            android:text="@string/swing" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:textColor="@color/status_text"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mitsubishi AC Remote</string>
+    <string name="device_title">mitsubishi AC Bedroom</string>
+    <string name="brand">mitsubishi</string>
+    <string name="celsius">°C</string>
+    <string name="temp_blank">- -</string>
+    <string name="wind_speed">WIND SPEED</string>
+    <string name="temp">TEMP</string>
+    <string name="power">ON/OFF</string>
+    <string name="mode">MODE</string>
+    <string name="swing">SWING</string>
+    <string name="help">Help</string>
+    <string name="back">Back</string>
+    <string name="temp_up">Raise temperature</string>
+    <string name="temp_down">Lower temperature</string>
+
+    <string name="mode_cooling">COOLING</string>
+    <string name="mode_heating">HEATING</string>
+    <string name="mode_dry">DRY</string>
+    <string name="mode_fan">FAN</string>
+    <string name="mode_auto">AUTO</string>
+
+    <string name="fan_auto">AUTO</string>
+    <string name="fan_silent">SILENT</string>
+    <string name="state_off">OFF</string>
+
+    <string name="status_sent">Sent %1$s</string>
+    <string name="status_no_emitter">This phone has no IR blaster — showing the remote only.</string>
+    <string name="status_failed">The IR emitter refused the frame. Try again.</string>
+    <string name="status_no_carrier">IR blaster found, but it does not list 38 kHz support.</string>
+
+    <string name="help_title">How this remote works</string>
+    <string name="help_body">Each button re-sends the complete A/C state over infrared, exactly as the original Mitsubishi handset does, so the on-screen display always matches what was transmitted.\n\n• ON/OFF — powers the unit on or off\n• MODE — cools, heats, dries, fan only, auto\n• TEMP — 16 °C to 31 °C (not used in DRY or FAN)\n• WIND SPEED — auto, four steps, silent\n• SWING — sweeps the vane up and down\n\nTransmission needs a phone with an IR blaster. Without one the display and buttons still work, so the layout can be checked on any device.</string>
+    <string name="help_close">Got it</string>
+</resources>
